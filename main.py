@@ -25,7 +25,7 @@ def load_vgg(sess, vgg_path):
     :param vgg_path: Path to vgg folder, containing "variables/" and "saved_model.pb"
     :return: Tuple of Tensors from VGG model (image_input, keep_prob, layer3_out, layer4_out, layer7_out)
     """
-    # TODO: Implement function  #komer 1
+    # TODO: Implement function
     #   Use tf.saved_model.loader.load to load the model and weights
     vgg_tag = 'vgg16'
     vgg_input_tensor_name = 'image_input:0'
@@ -37,7 +37,7 @@ def load_vgg(sess, vgg_path):
     # added logic begins - 1
     tf.saved_model.loader.load(sess, [vgg_tag], vgg_path)
     graph = tf.get_default_graph()
-    #print (graph)
+    # print (graph)
     image_input = graph.get_tensor_by_name (vgg_input_tensor_name)
     keep_prob = graph.get_tensor_by_name (vgg_keep_prob_tensor_name)
     layer3_out = graph.get_tensor_by_name (vgg_layer3_out_tensor_name)
@@ -45,6 +45,7 @@ def load_vgg(sess, vgg_path):
     layer7_out = graph.get_tensor_by_name (vgg_layer7_out_tensor_name)
     return (image_input, keep_prob, layer3_out, layer4_out, layer7_out)
     # added logic ends - 1
+    
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -74,7 +75,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
                                    kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
                                    kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))  #fine-tuning may be needed 
     #  Add layer7_ups and layer4_c1x1  as inputs to layer8_out
-    layer74_out =  tf.add(layer7_ups, layer4_cx1)
+    layer74_out =  tf.add(layer7_ups, layer4_c1x1)
     
     # Upsample Layer 8 out
     layer374_input1 = tf.layers.conv2d_transpose(layer74_out, num_classes, 4,  strides= (2, 2), padding= 'same', 
@@ -93,7 +94,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     last_layer = tf.layers.conv2d_transpose(layer374_out, num_classes, 16,  strides= (8, 8), padding= 'same', 
                                              kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
                                              kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3)) #fine-tuning may be needed
-   
+    # print (last_layer)
     return (last_layer)
     # added logic ends - 2
 tests.test_layers(layers)
@@ -127,7 +128,6 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 tests.test_optimize(optimize)
 
 
-
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
              correct_label, keep_prob, learning_rate):
     """
@@ -148,30 +148,40 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     sess.run(tf.global_variables_initializer())
     print("Training in progress ...")
     print()
-
+    all_losses = []
     for an_epoch in range(epochs):
         print("EPOCH {} ..".format(an_epoch))
 
+        avg_epoch_loss = 0.
+        num_epoch_runs = 0
         for an_img, a_label in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={input_image: an_img, correct_label: a_label, 
                                 keep_prob: 0.5, learning_rate: 0.0009})
-            print("Loss: = {:.4f}".format(loss))
+            # print("Loss: {:.4f}".format(loss))
+            avg_epoch_loss += loss
+            num_epoch_runs += 1
+        avg_epoch_loss /= num_epoch_runs
+        
+        print("Average EPOCH Loss: {:.4f}".format(avg_epoch_loss))
+        all_losses.append(avg_epoch_loss)
         print()
-    # added logic 4 - ends
     
+    print(all_losses)
+    # added logic 4 - ends
 tests.test_train_nn(train_nn)
 
 
 def run():
     num_classes = 2
     image_shape = (160, 576)
-    data_dir = './data'
+    data_dir = '/data'
     runs_dir = './runs'
+    
+    EPOCHS = 50
+    BATCH_SIZE = 10 # reduced from 16.
+    
     tests.test_for_kitti_dataset(data_dir)
 
-    EPOCHS = 50
-    BATCH_SIZE = 16
-    
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
@@ -187,8 +197,7 @@ def run():
 
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
-
-        # TODO: Build NN using load_vgg, layers, and optimize function # komer 5
+       # TODO: Build NN using load_vgg, layers, and optimize function # komer 5
                 
         # Tensor Flow Placeholder Variables
         correct_label = tf.placeholder(tf.int32, [None, None, None, num_classes], name='correct_label')
@@ -205,11 +214,10 @@ def run():
         train_nn(sess, EPOCHS, BATCH_SIZE, get_batches_fn, train_op, cross_entropy_loss, input_image,
                 correct_label, keep_prob, learning_rate)
 
-        
         # TODO: Save inference data using helper.save_inference_samples # komer 7
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
-
-        # OPTIONAL: Apply the trained model to a video # komer 8
+        
+        # OPTIONAL: Apply the trained model to a video
 
 
 if __name__ == '__main__':
