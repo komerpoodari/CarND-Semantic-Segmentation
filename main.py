@@ -63,46 +63,43 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     
     #define regularizer
-    regularizer = tf.contrib.layers.l2_regularizer(scale=0.1) #fine tuning may be needed
+    regularizer = tf.contrib.layers.l2_regularizer(scale=0.1) #fine tuning was needed
     # 1x1 convolution on VGG Layer 7 output
     layer7_c1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same', 
-                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                    kernel_regularizer= regularizer)
-                                   #kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))  #fine-tuning may be needed 
 
     # then upsample 
     layer7_ups = tf.layers.conv2d_transpose(layer7_c1x1, num_classes, 4, strides=(2,2), padding='same', 
-                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                              kernel_regularizer= regularizer)
-                                             #kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3)) #fine-tuning may be needed
+
     # 1x1 convolve Layer 4 output 
     layer4_c1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same', 
-                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                    kernel_regularizer= regularizer)
-                                   # kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))  #fine-tuning may be needed 
+
     #  Add layer7_ups and layer4_c1x1  as inputs to layer8_out
     layer74_out =  tf.add(layer7_ups, layer4_c1x1)
     
     # Upsample Layer 8 out
     layer374_input1 = tf.layers.conv2d_transpose(layer74_out, num_classes, 4,  strides= (2, 2), padding= 'same', 
-                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                              kernel_regularizer= regularizer)
-                                             # kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3)) #fine-tuning may be needed
                                              
     # 1x1 convolve layer3 output
     layer374_input2 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same', 
-                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                   kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                    kernel_regularizer= regularizer)
-                                   # kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3))  #fine-tuning may be needed 
                               
     # Add layer374 input1 and input2
     layer374_out = tf.add(layer374_input1, layer374_input2)
     
     # Upsample by 8
     last_layer = tf.layers.conv2d_transpose(layer374_out, num_classes, 16,  strides= (8, 8), padding= 'same', 
-                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning may be needed
+                                             kernel_initializer= tf.random_normal_initializer(stddev=0.01), #fine-tuning needed
                                              kernel_regularizer= regularizer)
-                                             #kernel_regularizer= tf.contrib.layers.l2_regularizer(1e-3)) #fine-tuning may be needed
+    
     # print (last_layer)
     return (last_layer)
     # added logic ends - 2
@@ -128,7 +125,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits= logits, labels=label))
     reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-    reg_constant = 0.01  # may need finetuning
+    reg_constant = 0.01  # needed finetuning
     cross_entropy_loss = cross_entropy_loss + reg_constant * sum(reg_losses)
     
     # instantiate training operation with Adam Optimizer
@@ -178,7 +175,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         all_losses.append(avg_epoch_loss)
         print()
     
-    print(all_losses)
+    #print(all_losses)
     # added logic 4 - ends
 tests.test_train_nn(train_nn)
 
