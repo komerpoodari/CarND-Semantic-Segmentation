@@ -1,6 +1,65 @@
-# Semantic Segmentation
-### Introduction
-In this project, you'll label the pixels of a road in images using a Fully Convolutional Network (FCN).
+# UDACITY SDND - Semantic Segmentation Project Submission
+
+[//]: # (Image References)
+[image1]: ./lossprofiles.png
+[image2]: ./um_000015.png
+[image3]: ./um_000032.png
+[image4]: ./um_000044.png
+[image5]: ./um_000076.png
+[image6]: ./umm_000038.png
+[image7]: ./uu_000063.png
+[image8]: ./uu_000064.png
+
+## Introduction
+In this project, the pixels of a road in images were labeled using a Fully Convolutional Network (FCN).
+
+## APPROACH
+A pre-trained VGG16 network was used as base and additional FCN layers were added with 1x1 convolutions and
+upsampling combined with skip connections from previous layers. Upsampling was used to regain the image size.
+
+## ARCHITECTURE
+1. Pretrained VGG16 - 7 layer network was taken as baseline.
+2. The Layer 7 output was 1x1 convolved and upsampled using TensorFlow `transpose()` function to match Layer 4 output size.
+3. The output of step 2 was combined with '1x1 convolved Layer 4 output'
+4. The output of step 3 was upsampled to match the size of Layer 3 output.
+5. The output of step 4 was combined with  '1x1 convolved Layer 3 output'.
+6. The result of step 5 was the last layer.
+The logic was implemented in `main.py: layers()` method. This was implemented as per the paper `https://arxiv.org/pdf/1605.06211.pdf`.
+
+## Loss and Optimizer
+Cross Entropy Loss coupled with L2 Regularization loss.
+Adam Optimizer was used.
+The logic was implemented in `main.py:optimize()`.
+
+## Training 
+The following training were parameters used after some experimentation.
+- Keep Probability = 0.5,  to avoid overfitting.
+- learning_rate = 0.001
+- epochs = 50
+- batch_size = 5
+The following picture captures the loss profiles with two scenarios.
+
+![alt text][image1]
+
+L2 regularization with slight increase in learning rate improved loss improvement pace.
+
+## Results and Observations
+The following are the sample images that in which road was labeled with green pixels. The result were robust.
+
+![alt text][image2]
+
+![alt text][image3]
+
+![alt text][image4]
+
+![alt text][image5]
+
+![alt text][image6]
+
+![alt text][image7]
+
+![alt text][image8]
+
 
 ### Setup
 ##### GPU
