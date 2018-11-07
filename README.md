@@ -61,6 +61,9 @@ The following are the sample images that in which road was labeled with green pi
 ![alt text][image8]
 
 
+
+## The following sections belong to base readme.
+
 ### Setup
 ##### GPU
 `main.py` will check to make sure you are using GPU - if you don't have a GPU on your system, you can use AWS or another cloud computing platform.
